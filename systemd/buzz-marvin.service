@@ -1,6 +1,6 @@
 [Unit]
 Description=Buzz Agent - Marvin (OpenClaw)
-Documentation=https://github.com/darrenjrobinson/openclaw-acp-buzz
+Documentation=https://github.com/darrenjrobinson/buzz-acp-shim
 After=network.target buzz-relay.service
 Requires=buzz-relay.service
 
@@ -11,7 +11,7 @@ WorkingDirectory=/home/marvin/.openclaw/workspace
 EnvironmentFile=/home/marvin/.openclaw/secrets/buzz-marvin.env
 ExecStart=/home/marvin/.local/bin/buzz-acp \
   --agent-command python3 \
-  --agent-args /home/marvin/.openclaw/workspace/bin/openclaw-acp-shim.py \
+  --agent-args /home/marvin/.openclaw/workspace/bin/buzz-acp-shim.py \
   --subscribe mentions
 Restart=always
 RestartSec=10

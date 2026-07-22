@@ -65,7 +65,7 @@ buzz-relay
 ```bash
 source /path/to/buzz-marvin.env
 echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"client_info":{"name":"test"}}}' \
-  | python3 /path/to/openclaw-acp-shim.py
+  | python3 /path/to/buzz-acp-shim.py
 ```
 
 Should return:
@@ -87,7 +87,7 @@ Should return:
 ```bash
 source /path/to/buzz-marvin.env
 buzz-acp --agent-command python3 \
-  --agent-args /path/to/openclaw-acp-shim.py \
+  --agent-args /path/to/buzz-acp-shim.py \
   --subscribe mentions
 # Run in foreground to see errors
 ```
