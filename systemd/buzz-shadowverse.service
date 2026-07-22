@@ -1,0 +1,22 @@
+[Unit]
+Description=Buzz Agent - Shadowverse (Claude Code)
+Documentation=https://github.com/darrenjrobinson/openclaw-acp-buzz
+After=network.target buzz-relay.service
+Requires=buzz-relay.service
+
+[Service]
+Type=simple
+User=marvin
+WorkingDirectory=/home/marvin/.openclaw/workspace
+EnvironmentFile=/home/marvin/.openclaw/secrets/buzz-shadowverse.env
+ExecStart=/home/marvin/.local/bin/buzz-acp \
+  --agent-command /home/marvin/.local/bin/claude \
+  --subscribe mentions
+Restart=always
+RestartSec=10
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=buzz-shadowverse
+
+[Install]
+WantedBy=multi-user.target
