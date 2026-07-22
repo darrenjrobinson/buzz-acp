@@ -1,6 +1,6 @@
 [Unit]
 Description=Buzz Agent - Shadowverse (Claude Code)
-Documentation=https://github.com/darrenjrobinson/buzz-acp-shim
+Documentation=https://github.com/darrenjrobinson/buzz-acp
 After=network.target buzz-relay.service
 Requires=buzz-relay.service
 

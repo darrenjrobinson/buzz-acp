@@ -16,7 +16,7 @@ buzz-acp harness
     │  ACP (JSON-RPC 2.0 over stdio)
     ▼
 Agent subprocess
-    ├── buzz-acp-shim.py   (Marvin — OpenClaw path)
+    ├── buzz-acp.py   (Marvin — OpenClaw path)
     │       │
     │       │  HTTP SSE — /v1/chat/completions
     │       ▼

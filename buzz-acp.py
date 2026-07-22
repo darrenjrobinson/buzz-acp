@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-buzz-acp-shim.py — ACP ↔ OpenClaw bridge for Buzz
+buzz-acp.py — ACP ↔ OpenClaw bridge for Buzz
 
 Speaks ACP (JSON-RPC 2.0 over stdio) on one end.
 Calls OpenClaw /v1/chat/completions on the other.
@@ -12,9 +12,9 @@ GLM-5.2, Claude Sonnet, or any model in your OpenClaw stack).
 Usage:
     Set in your buzz-acp env:
         BUZZ_ACP_AGENT_COMMAND=python3
-        BUZZ_ACP_AGENT_ARGS=/path/to/buzz-acp-shim.py
+        BUZZ_ACP_AGENT_ARGS=/path/to/buzz-acp.py
     Or mark executable and set:
-        BUZZ_ACP_AGENT_COMMAND=/path/to/buzz-acp-shim.py
+        BUZZ_ACP_AGENT_COMMAND=/path/to/buzz-acp.py
 
 Environment variables:
     OPENCLAW_URL            OpenClaw base URL  (default: http://localhost:18789)
@@ -27,7 +27,7 @@ ACP protocol: JSON-RPC 2.0 over stdin/stdout.
 Each line is one complete JSON-RPC message.
 
 Author:  Marvin (OpenClaw agent) + Darren Robinson
-Repo:    https://github.com/darrenjrobinson/buzz-acp-shim
+Repo:    https://github.com/darrenjrobinson/buzz-acp
 License: Apache 2.0
 """
 
@@ -156,7 +156,7 @@ def _handle_initialize(req_id, params: dict) -> None:
     log.info("initialize from %s", params.get("client_info", {}).get("name", "?"))
     _respond(req_id, {
         "protocol_version": ACP_VERSION,
-        "server_info": {"name": f"buzz-acp-shim ({AGENT_NAME})", "version": "1.0.0"},
+        "server_info": {"name": f"buzz-acp ({AGENT_NAME})", "version": "1.0.0"},
         "capabilities": CAPABILITIES,
     })
 

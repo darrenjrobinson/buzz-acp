@@ -1,4 +1,4 @@
-# buzz-acp-shim
+# buzz-acp
 
 > Run [OpenClaw](https://openclaw.ai) AI agents as first-class citizens in a self-hosted [Buzz](https://github.com/block/buzz) workspace.
 
@@ -12,7 +12,7 @@
 
 This repo gives you two things:
 
-1. **`buzz-acp-shim.py`** — A lightweight Python bridge that lets any [OpenClaw](https://openclaw.ai)-powered agent join Buzz as a first-class participant. It speaks ACP (Agent Communication Protocol, JSON-RPC 2.0 over stdio) on one end, and calls OpenClaw's `/v1/chat/completions` on the other.
+1. **`buzz-acp.py`** — A lightweight Python bridge that lets any [OpenClaw](https://openclaw.ai)-powered agent join Buzz as a first-class participant. It speaks ACP (Agent Communication Protocol, JSON-RPC 2.0 over stdio) on one end, and calls OpenClaw's `/v1/chat/completions` on the other.
 
 2. **Complete setup guide** — How to deploy a self-hosted Buzz relay on Linux, wire in an OpenClaw agent (Marvin), and wire in a Claude Code agent (Shadowverse) — each with separate inference, separate Nostr identity, and proper presence/typing indicators in the UI.
 
@@ -52,7 +52,7 @@ This repo gives you two things:
 │  │ buzz-acp harness        │  │ buzz-acp harness       │   │
 │  │ Nostr keypair: M        │  │ Nostr keypair: S       │   │
 │  │          │              │  │          │             │   │
-│  │ buzz-acp-shim.py    │  │ claude (native ACP)   │   │
+│  │ buzz-acp.py    │  │ claude (native ACP)   │   │
 │  │ (this repo)             │  │                        │   │
 │  │          │              │  │ Anthropic API          │   │
 │  │ OpenClaw API            │  │ (your subscription)    │   │
@@ -65,7 +65,7 @@ This repo gives you two things:
 
 | Agent | Path | Billing |
 |-------|------|---------|
-| Marvin | buzz-acp → buzz-acp-shim → OpenClaw `/v1/chat/completions` | Whatever your OpenClaw model stack is configured to use |
+| Marvin | buzz-acp → buzz-acp → OpenClaw `/v1/chat/completions` | Whatever your OpenClaw model stack is configured to use |
 | Shadowverse | buzz-acp → `claude` CLI (ACP native) | Your Anthropic subscription directly |
 
 No cross-contamination. Each agent is fully independent.
@@ -180,11 +180,11 @@ export BUZZ_RELAY_PRIVATE_KEY=<your relay signing key>
 
 ```bash
 # Clone this repo
-git clone https://github.com/darrenjrobinson/buzz-acp-shim.git
-chmod +x buzz-acp-shim/buzz-acp-shim.py
+git clone https://github.com/darrenjrobinson/buzz-acp.git
+chmod +x buzz-acp/buzz-acp.py
 
 # Copy and edit the env template
-cp buzz-acp-shim/examples/buzz-marvin.env.example /path/to/buzz-marvin.env
+cp buzz-acp/examples/buzz-marvin.env.example /path/to/buzz-marvin.env
 # Edit: set BUZZ_PRIVATE_KEY, OPENCLAW_URL, OPENCLAW_API_KEY, OPENCLAW_SESSION_KEY
 ```
 
@@ -192,7 +192,7 @@ Test the shim standalone:
 ```bash
 source /path/to/buzz-marvin.env
 echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"client_info":{"name":"test"}}}' \
-  | python3 buzz-acp-shim/buzz-acp-shim.py
+  | python3 buzz-acp/buzz-acp.py
 # Should return: {"jsonrpc":"2.0","id":1,"result":{"protocol_version":"0.1.0",...}}
 ```
 
@@ -203,7 +203,7 @@ echo '{"jsonrpc":"2.0","id":1,"method":"initialize","params":{"client_info":{"na
 source /path/to/buzz-marvin.env
 ~/.local/bin/buzz-acp \
   --agent-command python3 \
-  --agent-args /path/to/buzz-acp-shim.py \
+  --agent-args /path/to/buzz-acp.py \
   --subscribe mentions
 ```
 
@@ -215,7 +215,7 @@ Or use the systemd unit: `systemd/buzz-marvin.service`
 # Claude Code must be installed: https://claude.ai/code
 which claude  # verify
 
-cp buzz-acp-shim/examples/buzz-shadowverse.env.example /path/to/buzz-shadowverse.env
+cp buzz-acp/examples/buzz-shadowverse.env.example /path/to/buzz-shadowverse.env
 # Edit: set BUZZ_PRIVATE_KEY, BUZZ_ACP_SYSTEM_PROMPT_FILE
 
 source /path/to/buzz-shadowverse.env
@@ -238,7 +238,7 @@ Or use the systemd unit: `systemd/buzz-shadowverse.service`
 
 ## Configuration Reference
 
-### buzz-acp-shim environment variables
+### buzz-acp environment variables
 
 | Variable | Required | Default | Description |
 |----------|----------|---------|-------------|
@@ -267,8 +267,8 @@ Full buzz-acp reference: see `.env.example` in the buzz repo.
 ## Files
 
 ```
-buzz-acp-shim/
-├── buzz-acp-shim.py              # The ACP↔OpenClaw bridge (main artifact)
+buzz-acp/
+├── buzz-acp.py              # The ACP↔OpenClaw bridge (main artifact)
 ├── README.md                         # This file
 ├── LICENSE                           # Apache 2.0
 ├── examples/
@@ -302,7 +302,7 @@ The shim implements three ACP methods:
 **Streaming:** Tokens are forwarded immediately as `agent/stream` notifications, so Buzz shows the typing indicator and streams the response in real time — same as any native agent.
 
 ```
-buzz-acp  ──stdio──▶  buzz-acp-shim.py  ──HTTP──▶  OpenClaw  ──▶  LLM
+buzz-acp  ──stdio──▶  buzz-acp.py  ──HTTP──▶  OpenClaw  ──▶  LLM
   (Nostr)              (ACP JSON-RPC 2.0)     (SSE stream)
 ```
 
