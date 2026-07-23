@@ -10,8 +10,9 @@ license: Apache-2.0
 Wire OpenClaw agents and Claude Code agents into a self-hosted [Buzz](https://github.com/block/buzz) workspace as first-class Nostr participants — with presence, typing indicators, @mentions, DMs, and thread context.
 
 Each agent gets its own secp256k1 Nostr keypair and independent inference path:
-- **OpenClaw agent** (e.g. Marvin) → `buzz-acp.py` shim → OpenClaw `/v1/chat/completions`
-- **Claude Code agent** (e.g. Shadowverse) → `claude` CLI natively via ACP — no shim needed
+- **OpenClaw agents** → `buzz-acp.py` shim → OpenClaw `/v1/chat/completions` → your configured model stack
+- **Claude Code agents** → `claude` CLI natively via ACP — no shim needed
+- **Multiple agents supported** — run as many as you like, each with a different name, persona, and session key
 
 > **About Marvin:** Throughout this skill and the README, "Marvin" refers to the repo author's personal [OpenClaw](https://openclaw.ai) AI agent — a Paranoid Android persona built on OpenClaw. Marvin is not a product name; it's a personal agent identity. Substitute your own agent name and session key throughout.
 
@@ -68,8 +69,8 @@ DATABASE_URL=postgres://buzz:***@localhost:5432/buzz buzz-admin migrate
 
 ```bash
 buzz-admin generate-key   # relay signing key → BUZZ_RELAY_PRIVATE_KEY in .env
-buzz-admin generate-key   # Marvin keypair → buzz-marvin.env
-buzz-admin generate-key   # Shadowverse keypair → buzz-shadowverse.env
+buzz-admin generate-key   # First agent keypair → buzz-agent1.env
+buzz-admin generate-key   # Additional agents → repeat for each
 ```
 
 ### 4. Start relay
@@ -91,8 +92,8 @@ RELAY_URL=ws://YOUR_LAN_IP:3000
 ```bash
 export DATABASE_URL=postgres://buzz:***@localhost:5432/buzz
 export BUZZ_RELAY_PRIVATE_KEY=<relay signing key>
-buzz-admin add-member --pubkey <MARVIN_PUBKEY>
-buzz-admin add-member --pubkey <SHADOWVERSE_PUBKEY>
+buzz-admin add-member --pubkey <AGENT1_PUBKEY>
+buzz-admin add-member --pubkey <AGENT2_PUBKEY>   # repeat for each agent
 buzz-admin list-members   # verify
 ```
 
@@ -104,9 +105,9 @@ buzz-admin list-members   # verify
 #   Environment=PATH=/home/<user>/.local/bin:/usr/local/bin:/usr/bin:/bin
 
 sudo cp systemd/buzz-marvin.service /etc/systemd/system/
-sudo cp systemd/buzz-shadowverse.service /etc/systemd/system/
+# For additional agents, copy and edit buzz-agent.service.example for each one
 sudo systemctl daemon-reload
-sudo systemctl enable --now buzz-marvin buzz-shadowverse
+sudo systemctl enable --now buzz-marvin
 ```
 
 ### 7. Windows/macOS/Linux desktop client
@@ -145,7 +146,15 @@ OPENCLAW_AGENT_NAME=Marvin
 # BUZZ_ACP_THREAD_REPLIES=true  # future flag — harness controls threading, not shim
 ```
 
-### buzz-shadowverse.env (Claude Code — no shim needed)
+### Additional OpenClaw agent env
+
+To run a second (or third) OpenClaw agent, copy `buzz-marvin.env.example` and change:
+- `BUZZ_PRIVATE_KEY` — a new keypair from `buzz-admin generate-key`
+- `OPENCLAW_SESSION_KEY` — a unique session key (e.g. `agent:main:buzz:myagent`)
+- `OPENCLAW_AGENT_NAME` — the agent's display name for logs
+- `OPENCLAW_SYSTEM_PROMPT` — persona/instructions for this agent
+
+### Claude Code agent env (no shim needed)
 
 ```bash
 BUZZ_PRIVATE_KEY=<hex>

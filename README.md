@@ -14,16 +14,17 @@ This repo gives you two things:
 
 1. **`buzz-acp.py`** — A lightweight Python bridge that lets any [OpenClaw](https://openclaw.ai)-powered agent join Buzz as a first-class participant. It speaks ACP (Agent Communication Protocol, JSON-RPC 2.0 over stdio) on one end, and calls OpenClaw's `/v1/chat/completions` on the other.
 
-2. **Complete setup guide** — How to deploy a self-hosted Buzz relay on Linux, wire in an OpenClaw agent (Marvin), and wire in a Claude Code agent (Shadowverse) — each with separate inference, separate Nostr identity, and proper presence/typing indicators in the UI.
+2. **Complete setup guide** — How to deploy a self-hosted Buzz relay on Linux, wire in one or more AI agents — OpenClaw agents, Claude Code agents, or any ACP-compatible agent — each with a separate Nostr identity, separate inference, and proper presence/typing indicators in the UI.
 
 > **About Marvin:** Throughout this guide, "Marvin" refers to an [OpenClaw](https://openclaw.ai) AI agent — a Paranoid Android persona powered by OpenClaw and configured by the repo author. Marvin is not a product name; it's a personal agent identity. You can name your own agent anything you like.
 
 ### What you get
 
 - A proper team workspace — channels, threads, DMs, canvases, search, reactions
-- Two AI agents with **separate identities and separate inference**:
-  - **Marvin** → OpenClaw agent (the repo author's personal agent) → your configured model stack (GLM-5.2, Claude Sonnet, etc.)
-  - **Shadowverse** → Claude Code CLI → Anthropic subscription directly
+- **Multiple AI agents** with separate Nostr identities and independent inference paths:
+  - **OpenClaw agents** → `buzz-acp.py` shim → OpenClaw `/v1/chat/completions` → your configured model stack (GLM-5.2, Claude Sonnet, etc.)
+  - **Claude Code agents** → `claude` CLI natively via ACP — no shim needed
+  - Any number of agents, each with their own keypair and persona
 - Full Nostr audit trail — every interaction cryptographically signed
 - Self-hosted on your own iron — you own the relay, the data, the keys
 - Windows/macOS/Linux desktop client
@@ -34,8 +35,8 @@ This repo gives you two things:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│  You (Windows)                                              │
-│  Buzz Desktop Client v0.4.22 (x64)                          │
+│  You (Windows/macOS/Linux)                                  │
+│  Buzz Desktop Client                                        │
 │  connects to ws://<your-server>:3000                        │
 └────────────────────────┬────────────────────────────────────┘
                          │ WebSocket / Nostr NIP-01
@@ -50,27 +51,28 @@ This repo gives you two things:
 │  └── Keycloak (Docker, auth)                                │
 │                                                             │
 │  ┌─────────────────────────┐  ┌────────────────────────┐   │
-│  │ Marvin Agent            │  │ Shadowverse Agent      │   │
+│  │ OpenClaw Agent          │  │ Claude Code Agent      │   │
 │  │ buzz-acp harness        │  │ buzz-acp harness       │   │
-│  │ Nostr keypair: M        │  │ Nostr keypair: S       │   │
+│  │ Nostr keypair: A        │  │ Nostr keypair: B       │   │
 │  │          │              │  │          │             │   │
-│  │ buzz-acp.py    │  │ claude (native ACP)   │   │
-│  │ (this repo)             │  │                        │   │
-│  │          │              │  │ Anthropic API          │   │
-│  │ OpenClaw API            │  │ (your subscription)    │   │
-│  │ → your model stack      │  └────────────────────────┘   │
-│  └─────────────────────────┘                               │
+│  │ buzz-acp.py (this repo) │  │ claude (native ACP)    │   │
+│  │          │              │  │                        │   │
+│  │ OpenClaw API            │  │ Anthropic API          │   │
+│  │ → your model stack      │  │ (your subscription)    │   │
+│  └─────────────────────────┘  └────────────────────────┘   │
+│                                                             │
+│  Add more agents — each gets its own keypair and harness    │
 └─────────────────────────────────────────────────────────────┘
 ```
 
 ### Inference separation
 
-| Agent | Path | Billing |
-|-------|------|---------|
-| Marvin | buzz-acp → buzz-acp → OpenClaw `/v1/chat/completions` | Whatever your OpenClaw model stack is configured to use |
-| Shadowverse | buzz-acp → `claude` CLI (ACP native) | Your Anthropic subscription directly |
+| Agent type | Path | Billing |
+|------------|------|---------|
+| OpenClaw agent | `buzz-acp` harness → `buzz-acp.py` shim → OpenClaw `/v1/chat/completions` | Whatever your OpenClaw model stack uses |
+| Claude Code agent | `buzz-acp` harness → `claude` CLI (ACP native, no shim) | Your Anthropic subscription directly |
 
-No cross-contamination. Each agent is fully independent.
+No cross-contamination. Each agent has its own Nostr keypair, its own env file, and its own systemd unit. You can run as many as you like.
 
 ---
 
@@ -83,7 +85,7 @@ No cross-contamination. Each agent is fully independent.
 - Rust 1.88+ (install via rustup — see below)
 - Python 3.10+ (for the shim)
 - [OpenClaw](https://openclaw.ai) installed and running
-- *(Optional)* [Claude Code CLI](https://claude.ai/code) for Shadowverse agent
+- *(Optional)* [Claude Code CLI](https://claude.ai/code) for Claude Code agents
 
 ### Client (Windows/macOS/Linux)
 - [Buzz desktop client](https://github.com/block/buzz/releases/latest)
@@ -148,9 +150,9 @@ DATABASE_URL=postgres://buzz:YOUR_PG_PASSWORD@localhost:5432/buzz \
 ~/.local/bin/buzz-admin generate-key
 # → save pubkey + secret key to buzz-marvin.env (see examples/)
 
-# Shadowverse agent keypair  
+# Second agent keypair (Claude Code or another OpenClaw agent)
 ~/.local/bin/buzz-admin generate-key
-# → save pubkey + secret key to buzz-shadowverse.env (see examples/)
+# → save pubkey + secret key to buzz-agent2.env (see examples/)
 ```
 
 ### 6. Start the relay
@@ -172,8 +174,8 @@ Or use the provided systemd unit: `systemd/buzz-relay.service`
 export DATABASE_URL=postgres://buzz:YOUR_PG_PASSWORD@localhost:5432/buzz
 export BUZZ_RELAY_PRIVATE_KEY=<your relay signing key>
 
-~/.local/bin/buzz-admin add-member --pubkey <MARVIN_PUBKEY>
-~/.local/bin/buzz-admin add-member --pubkey <SHADOWVERSE_PUBKEY>
+~/.local/bin/buzz-admin add-member --pubkey <AGENT1_PUBKEY>
+~/.local/bin/buzz-admin add-member --pubkey <AGENT2_PUBKEY>  # repeat for each agent
 
 ~/.local/bin/buzz-admin list-members  # verify
 ```
@@ -211,22 +213,36 @@ source /path/to/buzz-marvin.env
 
 Or use the systemd unit: `systemd/buzz-marvin.service`
 
-### 10. Set up Shadowverse (Claude Code)
+### 10. Add additional agents (optional)
 
+You can run any number of agents — more OpenClaw agents (different personas or session keys), Claude Code agents, or any ACP-compatible agent binary.
+
+**Claude Code agent example:**
 ```bash
 # Claude Code must be installed: https://claude.ai/code
 which claude  # verify
 
-cp buzz-acp/examples/buzz-shadowverse.env.example /path/to/buzz-shadowverse.env
+cp buzz-acp/examples/buzz-agent2.env.example /path/to/buzz-agent2.env
 # Edit: set BUZZ_PRIVATE_KEY, BUZZ_ACP_SYSTEM_PROMPT_FILE
 
-source /path/to/buzz-shadowverse.env
+source /path/to/buzz-agent2.env
 ~/.local/bin/buzz-acp \
   --agent-command claude \
   --subscribe mentions
 ```
 
-Or use the systemd unit: `systemd/buzz-shadowverse.service`
+**Additional OpenClaw agent example:**
+```bash
+cp buzz-acp/examples/buzz-marvin.env.example /path/to/buzz-agent2.env
+# Edit: set a different BUZZ_PRIVATE_KEY, OPENCLAW_SESSION_KEY, and OPENCLAW_AGENT_NAME
+source /path/to/buzz-agent2.env
+~/.local/bin/buzz-acp \
+  --agent-command python3 \
+  --agent-args /path/to/buzz-acp.py \
+  --subscribe mentions
+```
+
+Each agent needs its own env file and systemd unit. See `systemd/buzz-agent.service.example` for a template.
 
 ### 11. Install the Windows desktop client
 
@@ -271,16 +287,16 @@ Full buzz-acp reference: see `.env.example` in the buzz repo.
 
 ```
 buzz-acp/
-├── buzz-acp.py              # The ACP↔OpenClaw bridge (main artifact)
+├── buzz-acp.py                       # The ACP↔OpenClaw bridge (main artifact)
 ├── README.md                         # This file
 ├── LICENSE                           # Apache 2.0
 ├── examples/
-│   ├── buzz-marvin.env.example       # Marvin agent env template
-│   └── buzz-shadowverse.env.example  # Shadowverse (Claude Code) env template
+│   ├── buzz-marvin.env.example       # OpenClaw agent env template
+│   └── buzz-agent2.env.example       # Claude Code (or second OpenClaw) agent env template
 ├── systemd/
 │   ├── buzz-relay.service            # systemd unit for the relay
-│   ├── buzz-marvin.service           # systemd unit for Marvin agent
-│   └── buzz-shadowverse.service      # systemd unit for Shadowverse agent
+│   ├── buzz-marvin.service           # systemd unit for first agent
+│   └── buzz-agent.service.example    # template for additional agents
 └── docs/
     ├── architecture.md               # Detailed architecture notes
     └── troubleshooting.md            # Common issues and fixes
@@ -327,7 +343,7 @@ Common issues:
 
 - [Buzz](https://github.com/block/buzz) — the workspace platform
 - [OpenClaw](https://openclaw.ai) — the AI agent gateway powering Marvin
-- [Claude Code](https://claude.ai/code) — the AI agent powering Shadowverse
+- [Claude Code](https://claude.ai/code) — for Claude Code agents (no shim needed)
 - [blog.darrenjrobinson.com](https://blog.darrenjrobinson.com) — as-built writeup
 
 ---

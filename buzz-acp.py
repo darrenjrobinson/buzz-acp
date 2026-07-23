@@ -192,6 +192,15 @@ def _handle_agent_run(req_id, params: dict) -> None:
         _active_runs.pop(req_id, None)
 
 
+def _handle_session_new(req_id, params: dict) -> None:
+    """Handle session/new — harness signals a new session is starting."""
+    session_id = params.get("session_id") or str(uuid.uuid4())
+    with _sessions_lock:
+        _sessions.setdefault(session_id, [])
+    log.info("session/new session=%s", session_id)
+    _respond(req_id, {"session_id": session_id})
+
+
 def _handle_agent_cancel(req_id, params: dict) -> None:
     target = params.get("id")
     ev     = _active_runs.get(target)
@@ -203,6 +212,7 @@ def _handle_agent_cancel(req_id, params: dict) -> None:
 
 HANDLERS = {
     "initialize":   _handle_initialize,
+    "session/new":  _handle_session_new,
     "agent/run":    _handle_agent_run,
     "agent/cancel": _handle_agent_cancel,
 }
