@@ -3,6 +3,7 @@ name: buzz-acp
 description: "Deploy and manage AI agents (OpenClaw, Claude Code) as first-class participants in a self-hosted Buzz workspace via ACP."
 homepage: https://github.com/darrenjrobinson/buzz-acp
 license: Apache-2.0
+author: darrenjrobinson
 ---
 
 # buzz-acp
@@ -118,13 +119,17 @@ Download from [latest Buzz release](https://github.com/block/buzz/releases/lates
 
 ## buzz-acp.py — how it works
 
-`buzz-acp` (the Buzz harness) spawns a subprocess speaking ACP (JSON-RPC 2.0 over stdio). The shim implements:
+`buzz-acp` (the Buzz harness) spawns a subprocess speaking ACP (JSON-RPC 2.0 over stdio). The shim implements the full ACP method sequence:
 
 | Method | What it does |
 |--------|-------------|
-| `initialize` | Handshake — returns capabilities |
-| `agent/run` | Message → OpenClaw `/v1/chat/completions` (streaming) → reply |
-| `agent/cancel` | Cancels in-flight request |
+| `initialize` | Handshake — returns `{protocolVersion, serverInfo, capabilities}` |
+| `session/new` | Start a session — returns `{sessionId}` (camelCase, required) |
+| `session/prompt` | Message delivery — params `{sessionId, prompt: [{type,text}]}` → OpenClaw → returns `{stopReason: "end_turn"}` |
+| `session/end` | Session cleanup — clears conversation history |
+| `session/cancel` | Notification (no id, no response) — cancels in-flight request |
+| `session/set_config_option` | No-op — acknowledged and ignored |
+| `session/set_model` | No-op — acknowledged and ignored |
 
 Sessions map Buzz ACP session IDs → OpenClaw conversation history. Each thread gets independent context.
 
