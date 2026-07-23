@@ -13,6 +13,8 @@ Each agent gets its own secp256k1 Nostr keypair and independent inference path:
 - **OpenClaw agent** (e.g. Marvin) → `buzz-acp.py` shim → OpenClaw `/v1/chat/completions`
 - **Claude Code agent** (e.g. Shadowverse) → `claude` CLI natively via ACP — no shim needed
 
+> **About Marvin:** Throughout this skill and the README, "Marvin" refers to the repo author's personal [OpenClaw](https://openclaw.ai) AI agent — a Paranoid Android persona built on OpenClaw. Marvin is not a product name; it's a personal agent identity. Substitute your own agent name and session key throughout.
+
 ## Prerequisites
 
 - Self-hosted Buzz relay running (see setup below)
@@ -139,6 +141,8 @@ OPENCLAW_URL=http://localhost:18789
 OPENCLAW_API_KEY=<key>
 OPENCLAW_SESSION_KEY=agent:main:buzz:marvin
 OPENCLAW_AGENT_NAME=Marvin
+# Threading: replies are threaded by default (harness behaviour).
+# BUZZ_ACP_THREAD_REPLIES=true  # future flag — harness controls threading, not shim
 ```
 
 ### buzz-shadowverse.env (Claude Code — no shim needed)
@@ -162,6 +166,9 @@ Environment=PATH=/home/<user>/.local/bin:/usr/local/bin:/usr/bin:/bin
 
 **`BUZZ_RELAY_PRIVATE_KEY is required` on add-member**
 Export the key explicitly — having it in `.env` isn't enough when running buzz-admin manually.
+
+**Threading / flat posts**
+The `buzz-acp` harness threads replies to the triggering message automatically. There is currently no harness flag to disable this. If you need flat top-level posts, it would require a feature addition to the upstream `buzz-acp` harness.
 
 **`NoSuchBucket` on relay start**
 Run `docker compose up -d minio-init` before starting the relay.

@@ -17,11 +17,13 @@ Usage:
         BUZZ_ACP_AGENT_COMMAND=/path/to/buzz-acp.py
 
 Environment variables:
-    OPENCLAW_URL            OpenClaw base URL  (default: http://localhost:18789)
-    OPENCLAW_API_KEY        OpenClaw API key   (required if auth is enabled)
-    OPENCLAW_SESSION_KEY    Session key        (default: agent:main:buzz:marvin)
-    OPENCLAW_AGENT_NAME     Display name for logs (default: Marvin)
-    OPENCLAW_SYSTEM_PROMPT  Optional system prompt override (inline text)
+    OPENCLAW_URL              OpenClaw base URL  (default: http://localhost:18789)
+    OPENCLAW_API_KEY          OpenClaw API key   (required if auth is enabled)
+    OPENCLAW_SESSION_KEY      Session key        (default: agent:main:buzz:marvin)
+    OPENCLAW_AGENT_NAME       Display name for logs (default: Marvin)
+    OPENCLAW_SYSTEM_PROMPT    Optional system prompt override (inline text)
+    BUZZ_ACP_THREAD_REPLIES   true/false — reply in-thread (default: true). Set false
+                              to send flat top-level channel posts instead.
 
 ACP protocol: JSON-RPC 2.0 over stdin/stdout.
 Each line is one complete JSON-RPC message.
@@ -48,6 +50,7 @@ OPENCLAW_API_KEY  = os.environ.get("OPENCLAW_API_KEY", "")
 SESSION_KEY       = os.environ.get("OPENCLAW_SESSION_KEY", "agent:main:buzz:marvin")
 AGENT_NAME        = os.environ.get("OPENCLAW_AGENT_NAME", "Marvin")
 SYSTEM_PROMPT     = os.environ.get("OPENCLAW_SYSTEM_PROMPT", "")
+THREAD_REPLIES    = os.environ.get("BUZZ_ACP_THREAD_REPLIES", "true").strip().lower() != "false"
 
 # ---------------------------------------------------------------------------
 # Logging — stderr only (stdout is the ACP wire)

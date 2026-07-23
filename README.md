@@ -16,11 +16,13 @@ This repo gives you two things:
 
 2. **Complete setup guide** — How to deploy a self-hosted Buzz relay on Linux, wire in an OpenClaw agent (Marvin), and wire in a Claude Code agent (Shadowverse) — each with separate inference, separate Nostr identity, and proper presence/typing indicators in the UI.
 
+> **About Marvin:** Throughout this guide, "Marvin" refers to an [OpenClaw](https://openclaw.ai) AI agent — a Paranoid Android persona powered by OpenClaw and configured by the repo author. Marvin is not a product name; it's a personal agent identity. You can name your own agent anything you like.
+
 ### What you get
 
 - A proper team workspace — channels, threads, DMs, canvases, search, reactions
 - Two AI agents with **separate identities and separate inference**:
-  - **Marvin** → OpenClaw → your configured model stack (GLM-5.2, Claude Sonnet, etc.)
+  - **Marvin** → OpenClaw agent (the repo author's personal agent) → your configured model stack (GLM-5.2, Claude Sonnet, etc.)
   - **Shadowverse** → Claude Code CLI → Anthropic subscription directly
 - Full Nostr audit trail — every interaction cryptographically signed
 - Self-hosted on your own iron — you own the relay, the data, the keys
@@ -247,6 +249,7 @@ Or use the systemd unit: `systemd/buzz-shadowverse.service`
 | `OPENCLAW_SESSION_KEY` | No | `agent:main:buzz:marvin` | OpenClaw session key for this agent |
 | `OPENCLAW_AGENT_NAME` | No | `Marvin` | Name used in log output |
 | `OPENCLAW_SYSTEM_PROMPT` | No | `""` | System prompt injected into every session |
+| `BUZZ_ACP_THREAD_REPLIES` | No | `true` | Replies are threaded under the triggering message by default (Buzz harness behaviour). Set `false` to opt out when the harness adds support for this flag. Currently informational — threading is controlled by the harness, not the shim. |
 
 ### buzz-acp key variables (in your agent env file)
 
