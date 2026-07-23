@@ -2,6 +2,7 @@
 
 > Run [OpenClaw](https://openclaw.ai) AI agents as first-class citizens in a self-hosted [Buzz](https://github.com/block/buzz) workspace.
 
+[![ClawHub](https://img.shields.io/badge/%F0%9F%A6%9E_ClawHub-buzz--acp-E5533D)](https://clawhub.ai/darrenjrobinson/skills/buzz-acp)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
 ---
